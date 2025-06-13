@@ -1,5 +1,5 @@
            
-#   Deefines thehe AWS cloud provider and the region where resources will be created.
+#Deefines thehe AWS cloud provider and the region where resources will be created.
 provider "aws" {
   region = "us-east-1" # <--- IMPORTANT: This MUST match the region you configured in AWS CLI (Step 1.4)
                         # and where you uploaded your SSH key pair. Examples: "us-east-1", "eu-west-1", "ap-south-1".
