@@ -72,14 +72,12 @@ jobs: # Defines one or more jobs that will run in parallel or sequentially.
         run: pip install ansible # Installs Ansible using Python's package installer 'pip'.
         # What happens: The Ansible command-line tool is installed on the GitHub Actions runner.
 
-      - name: Prepare SSH Key for Ansible # Step 9: Make your SSH private key available to Ansible.
-        run: | # This is a multi-line shell script block.
-          mkdir -p ~/.ssh # Creates the '.ssh' directory in the runner's home directory if it doesn't already exist.
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa # Writes your private key (retrieved from GitHub Secret) to a file named 'id_rsa' in the '.ssh' directory.
-          chmod 600 ~/.ssh/id_rsa # Sets strict permissions for the private key file (read/write only for the owner), which is required by SSH for security.
-          ssh-keyscan -H ec2.amazonaws.com >> ~/.ssh/known_hosts # Adds AWS EC2's host key to the runner's 'known_hosts' file. This prevents SSH from prompting for host key verification (for simplicity in this project).
-        # What happens: This crucial step securely retrieves your SSH private key from GitHub Secrets, saves it as a file on the runner,
-        # sets the correct permissions, and adds AWS's host key. This allows Ansible to establish a secure SSH connection to your EC2 instance.
+      - name: Set up SSH key for EC2 access
+        run: |
+         mkdir -p ~/.ssh
+         echo "${{ secrets.EC2_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
+         chmod 600 ~/.ssh/id_rsa
+         ssh-keyscan -H ec2.amazonaws.com >> ~/.ssh/known_hosts
 
       - name: Create Ansible Inventory # Step 10: Generate the dynamic Ansible inventory.
         run: |
