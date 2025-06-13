@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Simple DevOps Page</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Fallback font for older browsers or if Inter fails to load */
+        body {
+            font-family: 'Inter', sans-serif;
+            text-align: center;
+            margin-top: 100px;
+            background-color: #e0f2f7; /* Light blue background */
+            color: #333; /* Dark gray text */
+        }
+        .container {
+            background-color: #ffffff; /* White container background */
+            padding: 40px;
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            display: inline-block; /* Adjust width to content */
+            max-width: 90%; /* Responsive width */
+            width: auto; /* Allow content to dictate width */
+            margin: 0 auto; /* Center the container */
+        }
+        h1 {
+            color: #007bff; /* Blue heading */
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 5px;
+        }
+        /* Responsive adjustments using Tailwind-like principles for smaller screens */
+        @media (max-width: 600px) {
+            body {
+                margin-top: 50px;
+            }
+            .container {
+                padding: 20px;
+                margin: 0 10px; /* Add some side margin for smaller screens */
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            p {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Automated Deployment Success!</h1>
+        <p>This simple web page was deployed using:</p>
+        <ul>
+            <li><strong>Terraform</strong> for infrastructure (EC2)</li>
+            <li><strong>Ansible</strong> for server configuration (Nginx)</li>
+            <li><strong>GitHub Actions</strong> for automation (CI/CD)</li>
+        </ul>
+        <p>Welcome to your first integrated DevOps project!</p>
+    </div>
+</body>
+</html>
