@@ -1,0 +1,96 @@
+# .github/workflows/deploy.yml
+# This file defines your GitHub Actions workflow for automated deployment.
+
+name: Automated Web Server Deployment # The name of your workflow, displayed in the GitHub Actions UI.
+
+on: # Defines the events that trigger this workflow.
+  push: # This workflow triggers when code is pushed to your repository.
+    branches:
+      - main # Specifically, it triggers only when changes are pushed to the 'main' branch.
+    paths: # The workflow will only run if changes are detected within these specific directories.
+      - 'terraform/**' # If any files in the 'terraform' directory (or its subdirectories) change.
+      - 'ansible/**'   # If any files in the 'ansible' directory (or its subdirectories) change.
+      - 'app/**'       # If any files in the 'app' directory (or its subdirectories) change.
+  workflow_dispatch: # This allows you to manually trigger the workflow from the GitHub Actions UI.
+  # What happens: This section tells GitHub when to start your automation process. It will automatically run
+  # whenever you push updates to your main branch that affect your infrastructure, server configuration, or application code.
+  # You also get a convenient button in GitHub to run it manually.
+
+env: # Defines environment variables that will be available to all steps in this job.
+  AWS_REGION: ap-south-1 # <--- IMPORTANT: Your AWS region. This MUST match the region you configured in terraform/main.tf (Step 4.1).
+  # What happens: Sets a global environment variable 'AWS_REGION' for this workflow run.
+
+jobs: # Defines one or more jobs that will run in parallel or sequentially.
+  deploy_web_server: # This is the name of our single job.
+    runs-on: ubuntu-latest # Specifies the type of virtual machine (runner) GitHub provides to execute this job.
+                           # 'ubuntu-latest' means a recent version of Ubuntu Linux.
+    steps: # A sequence of individual commands or actions to be executed within this job.
+
+      - name: Checkout code # Step 1: Get your code from the repository.
+        uses: actions/checkout@v4 # Uses a pre-built GitHub Action to download your repository's code.
+        # What happens: All the files from your GitHub repository (terraform, ansible, app, .github/workflows) are downloaded
+        # onto the temporary Ubuntu virtual machine provided by GitHub Actions.
+
+      - name: Setup Terraform # Step 2: Install Terraform on the runner.
+        uses: hashicorp/setup-terraform@v3 # Uses a pre-built action maintained by HashiCorp to set up Terraform.
+        # What happens: The Terraform command-line tool is installed and made available on the GitHub Actions runner.
+
+      - name: Configure AWS Credentials # Step 3: Authenticate with AWS.
+        uses: aws-actions/configure-aws-credentials@v4 # Uses a pre-built AWS Action to configure AWS CLI.
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }} # Retrieves AWS Access Key ID from GitHub Secrets.
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} # Retrieves AWS Secret Access Key from GitHub Secrets.
+          aws-region: ${{ env.AWS_REGION }} # Uses the AWS_REGION environment variable defined above.
+        # What happens: The AWS CLI on the GitHub Actions runner is configured to use your AWS credentials (retrieved securely from GitHub Secrets).
+        # This allows Terraform and Ansible to authenticate and interact with your AWS account.
+
+      - name: Terraform Init # Step 4: Initialize Terraform.
+        working-directory: ./terraform # Specifies that this command should be run from inside the 'terraform' directory.
+        run: terraform init # Initializes Terraform, downloading necessary provider plugins (e.g., the AWS provider).
+        # What happens: Terraform sets up its working directory and downloads the specific AWS plugin it needs to talk to AWS.
+
+      - name: Terraform Apply # Step 5: Provision AWS infrastructure.
+        working-directory: ./terraform
+        run: terraform apply -auto-approve # Applies the Terraform configuration to create or update resources in AWS.
+        # '--auto-approve' bypasses the manual confirmation prompt, which is essential for automation.
+        # What happens: Terraform reads your 'main.tf' file and, using your AWS credentials, provisions (creates or updates) the EC2 instance and the Security Group in your AWS account.
+
+      - name: Get EC2 Public IP from Terraform Output # Step 6: Extract the EC2 instance's IP.
+        id: get_ip # Assigns a unique ID to this step so its outputs can be referenced by subsequent steps.
+        working-directory: ./terraform
+        run: echo "EC2_IP=$(terraform output -raw web_server_public_ip)" >> "$GITHUB_OUTPUT"
+        # What happens: After Terraform successfully creates the EC2 instance, this command extracts its public IP address (which is defined as an 'output' in 'main.tf').
+        # This IP is then made available as an environment variable named 'EC2_IP' for the steps that follow in the workflow.
+
+      - name: Set up Python for Ansible # Step 7: Install Python (Ansible's dependency).
+        uses: actions/setup-python@v5 # Uses a pre-built action to set up a Python environment.
+        with:
+          python-version: '3.x' # Specifies a compatible Python version (e.g., 3.9, 3.10, 3.11).
+        # What happens: Python is installed on the GitHub Actions runner, as Ansible is written in Python and requires it to run.
+
+      - name: Install Ansible # Step 8: Install Ansible on the runner.
+        run: pip install ansible # Installs Ansible using Python's package installer 'pip'.
+        # What happens: The Ansible command-line tool is installed on the GitHub Actions runner.
+
+      - name: Prepare SSH Key for Ansible # Step 9: Make your SSH private key available to Ansible.
+        run: | # This is a multi-line shell script block.
+          mkdir -p ~/.ssh # Creates the '.ssh' directory in the runner's home directory if it doesn't already exist.
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa # Writes your private key (retrieved from GitHub Secret) to a file named 'id_rsa' in the '.ssh' directory.
+          chmod 600 ~/.ssh/id_rsa # Sets strict permissions for the private key file (read/write only for the owner), which is required by SSH for security.
+          ssh-keyscan -H ec2.amazonaws.com >> ~/.ssh/known_hosts # Adds AWS EC2's host key to the runner's 'known_hosts' file. This prevents SSH from prompting for host key verification (for simplicity in this project).
+        # What happens: This crucial step securely retrieves your SSH private key from GitHub Secrets, saves it as a file on the runner,
+        # sets the correct permissions, and adds AWS's host key. This allows Ansible to establish a secure SSH connection to your EC2 instance.
+
+      - name: Create Ansible Inventory # Step 10: Generate the dynamic Ansible inventory.
+        run: |
+          echo "[web_servers]" > ansible/inventory.ini # Creates the 'inventory.ini' file and adds the Ansible group header.
+          echo "web_server_host ansible_host=${{ steps.get_ip.outputs.EC2_IP }}" >> ansible/inventory.ini # Adds the EC2 instance's public IP to the inventory file, mapping it to 'web_server_host'.
+          cat ansible/inventory.ini # Prints the content of the generated inventory file to the workflow logs (useful for debugging).
+        # What happens: Ansible needs to know the IP address of the server it's going to configure. This step dynamically creates the 'inventory.ini' file,
+        # inserting the actual public IP address of your newly provisioned EC2 instance (obtained from Terraform's output).
+
+      - name: Run Ansible Playbook # Step 11: Execute the Ansible configuration.
+        working-directory: ./ansible # Specifies that this command should be run from inside the 'ansible' directory.
+        run: ansible-playbook web_app.yml # Executes your Ansible playbook.
+        # What happens: Ansible connects to your newly created EC2 instance (using the IP from 'inventory.ini' and the prepared SSH key).
+        # It then executes all the tasks defined in your 'web_app.yml' playbook: installing Nginx, copying your 'index.html' file, and starting the Nginx service.
