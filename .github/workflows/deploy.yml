@@ -17,7 +17,7 @@ on: # Defines the events that trigger this workflow.
   # You also get a convenient button in GitHub to run it manually.
 
 env: # Defines environment variables that will be available to all steps in this job.
-  AWS_REGION: ap-south-1 # <--- IMPORTANT: Your AWS region. This MUST match the region you configured in terraform/main.tf (Step 4.1).
+  AWS_REGION: us-east-1 # <--- IMPORTANT: Your AWS region. This MUST match the region you configured in terraform/main.tf (Step 4.1).
   # What happens: Sets a global environment variable 'AWS_REGION' for this workflow run.
 
 jobs: # Defines one or more jobs that will run in parallel or sequentially.
