@@ -1,0 +1,28 @@
+# ansible/web_app.yml
+- name: Configure Web Server and Deploy Static App # A descriptive name for this entire playbook
+  hosts: web_servers # Specifies that this playbook should run on all hosts belonging to the 'web_servers' group from the inventory.
+  gather_facts: yes # Tells Ansible to collect facts (system information like OS, memory, CPU) about the remote host before running tasks.
+
+  tasks: # A list of individual tasks (actions) to be performed on the remote hosts.
+
+    - name: Update yum cache and install Nginx # Task 1: Install Nginx
+      ansible.builtin.yum: # Uses the 'yum' module for package management (common on Amazon Linux and RHEL-based systems).
+        name: nginx      # The name of the package to install.
+        state: present   # Ensures Nginx is installed (present). If already installed, it does nothing.
+        update_cache: yes # Updates the package manager's cache before installation, ensuring access to the latest package versions.
+      # What happens: Ansible connects to your EC2 instance, uses its 'yum' package manager to update its software index, and then installs the Nginx web server software.
+
+    - name: Copy index.html to Nginx web root # Task 2: Deploy your web page
+      ansible.builtin.copy: # Uses the 'copy' module to transfer files from the Ansible control machine to the remote host.
+        src: ../app/index.html # Source path of your HTML file on the GitHub Actions runner (relative to the 'ansible' directory).
+        dest: /usr/share/nginx/html/index.html # Destination path on the EC2 instance where Nginx expects to find web files.
+        mode: '0644' # Sets file permissions: read/write for owner, read-only for group/others.
+      # What happens: Your 'index.html' file (from your 'app' folder) is copied from the GitHub Actions runner to the specific directory on the EC2 instance where Nginx serves web content.
+
+    - name: Ensure Nginx service is running and enabled on boot # Task 3: Start and enable Nginx service
+      ansible.builtin.systemd: # Uses the 'systemd' module to manage system services.
+        name: nginx      # The name of the service to manage.
+        state: started   # Ensures the Nginx service is currently running.
+        enabled: yes     # Configures the Nginx service to start automatically every time the EC2 instance boots.
+        daemon_reload: yes # Reloads the systemd daemon to ensure any new service definitions are recognized (good practice).
+      # What happens: The Nginx web server service is started on your EC2 instance (making your website live), and it's configured to automatically restart if the EC2 instance ever reboots.
