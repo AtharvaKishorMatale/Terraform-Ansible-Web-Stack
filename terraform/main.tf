@@ -1,4 +1,4 @@
-           
+
 #Deefines thehe AWS cloud provider and the region where resources will be created.
 provider "aws" {
   region = "us-east-1" # <--- IMPORTANT: This MUST match the region you configured in AWS CLI (Step 1.4)
