@@ -93,8 +93,8 @@ jobs: # Defines one or more jobs that will run in parallel or sequentially.
           chmod 600 ~/.ssh/id_rsa
           echo "Permissions set for ~/.ssh/id_rsa."
 
-          ssh-keyscan -H "ec2.${{ env.AWS_REGION }}.amazonaws.com" >> ~/.ssh/known_hosts
-          echo "Host key scanned for ec2.${{ env.AWS_REGION }}.amazonaws.com."
+          ssh-keyscan -H "${{ steps.get_ip.outputs.EC2_IP }}" >> ~/.ssh/known_hosts
+          echo "Host key scanned for ${{ steps.get_ip.outputs.EC2_IP }}."
 
           echo "SSH key setup completed successfully."
 
