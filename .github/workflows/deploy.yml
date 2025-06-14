@@ -72,12 +72,31 @@ jobs: # Defines one or more jobs that will run in parallel or sequentially.
         run: pip install ansible # Installs Ansible using Python's package installer 'pip'.
         # What happens: The Ansible command-line tool is installed on the GitHub Actions runner.
 
-      - name: Set up SSH key for EC2 access
+      - name: Set up SSH key for EC2 access (DEBUG MODE)
         run: |
-         mkdir -p ~/.ssh
-         echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
-         chmod 600 ~/.ssh/id_rsa
-         ssh-keyscan -H ec2.amazonaws.com >> ~/.ssh/known_hosts
+          set -x # Enable verbose shell debugging - prints commands before execution
+
+          echo "Debugging SSH key setup..."
+          echo "Current directory: $(pwd)"
+          ls -la ~ # List contents of home directory before mkdir
+
+          mkdir -p ~/.ssh
+          echo "Directory ~/.ssh created/exists. Listing contents:"
+          ls -la ~/.ssh # List contents of .ssh directory after mkdir
+
+          echo "Attempting to write SSH private key..."
+          # Use printf for robustness, remove carriage returns, and redirect to file
+          printf "%s" "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
+          echo "SSH private key written to ~/.ssh/id_rsa. Listing file info:"
+          ls -la ~/.ssh/id_rsa # List details of the created key file
+
+          chmod 600 ~/.ssh/id_rsa
+          echo "Permissions set for ~/.ssh/id_rsa."
+
+          ssh-keyscan -H ec2.amazonaws.com >> ~/.ssh/known_hosts
+          echo "Host key scanned for ec2.amazonaws.com."
+
+          echo "SSH key setup completed successfully."
 
       - name: Create Ansible Inventory # Step 10: Generate the dynamic Ansible inventory.
         run: |
