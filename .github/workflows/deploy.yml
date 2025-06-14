@@ -75,7 +75,7 @@ jobs: # Defines one or more jobs that will run in parallel or sequentially.
       - name: Set up SSH key for EC2 access
         run: |
          mkdir -p ~/.ssh
-         echo "${{ secrets.EC2_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
+         echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
          chmod 600 ~/.ssh/id_rsa
          ssh-keyscan -H ec2.amazonaws.com >> ~/.ssh/known_hosts
 
