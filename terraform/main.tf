@@ -51,7 +51,7 @@ resource "aws_instance" "web_server" {
   # 1. Go to AWS EC2 Console -> Instances -> Launch instance.
   # 2. Search for "Amazon Linux 2 AMI (HVM), SSD Volume Type".
   # 3. Copy its AMI ID.
-  ami           = "ami-020cba7c55df1f615"
+  ami           = "ami-0a7d80731ae1b2435"
 
   instance_type = "t2.micro"                # The instance type, 't2.micro' is eligible for AWS Free Tier.
   key_name      = "my-simple-devops-key"    # <--- IMPORTANT: This MUST EXACTLY MATCH the name of the AWS Key Pair
