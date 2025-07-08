@@ -1,4 +1,4 @@
-#                          Defines the AWS cloud provider and the region where resources will be created.
+#---                          Defines the AWS cloud provider and the region where resources will be created.
 provider "aws" {
   region = "us-east-1"
 }
