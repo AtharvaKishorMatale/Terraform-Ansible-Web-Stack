@@ -86,7 +86,7 @@ jobs: # Defines one or more jobs that will run in parallel or sequentially.
 
           echo "Attempting to write SSH private key..."
           # Use printf for robustness, remove carriage returns, and redirect to file
-          printf "%s" "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
+          printf "%s" "${{ secrets.EC2_SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
           echo "SSH private key written to ~/.ssh/id_rsa. Listing file info:"
           ls -la ~/.ssh/id_rsa # List details of the created key file
 
