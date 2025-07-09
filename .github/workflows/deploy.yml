@@ -100,9 +100,9 @@ jobs: # Defines one or more jobs that will run in parallel or sequentially.
 
       - name: Create Ansible Inventory # Step 10: Generate the dynamic Ansible inventory.
         run: |
-          echo "[web_servers]" > ansible/inventory.ini # Creates the 'inventory.ini' file and adds the Ansible group header.
-          echo "web_server_host ansible_host=${{ steps.get_ip.outputs.EC2_IP }}" >> ansible/inventory.ini # Adds the EC2 instance's public IP to the inventory file, mapping it to 'web_server_host'.
-          cat ansible/inventory.ini # Prints the content of the generated inventory file to the workflow logs (useful for debugging).
+          echo "[web_servers]" > ansible/inventory.ini
+          echo "web_server_host ansible_host=${{ steps.get_ip.outputs.EC2_IP }} ansible_user=ec2-user ansible_ssh_private_key_file=~/.ssh/id_rsa_devops_simple" >> ansible/inventory.ini
+          cat ansible/inventory.ini
         # What happens: Ansible needs to know the IP address of the server it's going to configure. This step dynamically creates the 'inventory.ini' file,
         # inserting the actual public IP address of your newly provisioned EC2 instance (obtained from Terraform's output).
 
