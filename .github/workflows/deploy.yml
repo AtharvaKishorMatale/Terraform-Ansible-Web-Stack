@@ -86,12 +86,12 @@ jobs: # Defines one or more jobs that will run in parallel or sequentially.
 
           echo "Attempting to write SSH private key..."
           # Use printf for robustness, remove carriage returns, and redirect to file
-          printf "%s" "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
-          echo "SSH private key written to ~/.ssh/id_rsa. Listing file info:"
-          ls -la ~/.ssh/id_rsa # List details of the created key file
+          printf "%s" "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa_devops_simple
+          echo "SSH private key written to ~/.ssh/id_rsa_devops_simple. Listing file info:"
+          ls -la ~/.ssh/id_rsa_devops_simple# List details of the created key file
 
-          chmod 600 ~/.ssh/id_rsa
-          echo "Permissions set for ~/.ssh/id_rsa."
+          chmod 600 ~/.ssh/id_rsa_devops_simple
+          echo "Permissions set for ~/.ssh/id_rsa_devops_simple."
 
           ssh-keyscan -H "${{ steps.get_ip.outputs.EC2_IP }}" >> ~/.ssh/known_hosts
           echo "Host key scanned for ${{ steps.get_ip.outputs.EC2_IP }}."
